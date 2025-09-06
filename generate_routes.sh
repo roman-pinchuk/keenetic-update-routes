@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Check if a domain name is provided
-if [ -z "$1" ]; then
-    echo "Usage: $0 <domain_name>"
+# Check if domain name and VPN interface are provided
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Usage: $0 <domain_name> <vpn_interface>"
     exit 1
 fi
 
 DOMAIN=$1
+VPN_INTERFACE=$2
 OUTPUT_FILE="_routes/${DOMAIN}_routes.txt"
-VPN_INTERFACE="Wireguard0" # Replace with your VPN interface name if different
 
 # Resolve domain to IP addresses using dig
 IP_ADDRESSES=$(dig +short "${DOMAIN}")

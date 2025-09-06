@@ -11,7 +11,7 @@ PASSWORD=<password_of_the_router>
 To generate commands for routing, run as following:
 
 ```nix
-./generate_routes.sh <your.awesome.domain>
+./generate_routes.sh <your.awesome.domain> <vpn_interface>
 ```
 
 And you will get `_routes/<your.awesome.domain>_routes.txt`
