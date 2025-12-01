@@ -106,13 +106,17 @@ fi
 echo "==> Resolving domain: $DOMAIN"
 
 # Resolve domain to IP addresses using dig
-IP_ADDRESSES=$(dig +short "${DOMAIN}")
+# Filter out DNS names and keep only valid IP addresses (IPv4)
+IP_ADDRESSES=$(dig +short "${DOMAIN}" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
 
 # Check if any IP addresses were found
 if [ -z "$IP_ADDRESSES" ]; then
 	echo "Error: No IP addresses found for domain: $DOMAIN"
+	echo "Note: Only IPv4 addresses are supported. CNAMEs and hostnames are filtered out."
 	exit 1
 fi
+
+echo "==> Found $(echo "$IP_ADDRESSES" | wc -l | xargs) IP address(es)"
 
 # Create the output directory if it doesn't exist
 mkdir -p "_routes"
