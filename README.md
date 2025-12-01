@@ -1,6 +1,13 @@
-For using `update_routes_by_telnet.sh`, you must have `telnet` and `.env` and be in the same local network as the target Keenetic router.
+## Requirements
 
-`.env` should include the following:
+- `telnet` installed on your system
+- `dig` (DNS lookup tool, part of dnsutils/bind-utils)
+- `.env` file with router credentials
+- Same local network as the target Keenetic router
+
+## Setup
+
+Create a `.env` file with the following:
 
 ```txt
 ROUTER_IP=<ip_of_the_router>
@@ -8,16 +15,24 @@ USERNAME=<username_of_the_router>
 PASSWORD=<password_of_the_router>
 ```
 
-To generate commands for routing, run as following:
+## Usage
 
-```nix
-./generate_routes.sh <your.awesome.domain> <vpn_interface>
+Generate routes and apply them to your router in one command:
+
+```bash
+./update_routes.sh <your.awesome.domain> <vpn_interface>
 ```
 
-And you will get `_routes/<your.awesome.domain>_routes.txt`
+This will:
+1. Resolve the domain to IP addresses
+2. Generate routing commands
+3. Save them to `_routes/<your.awesome.domain>_routes.txt`
+4. Apply the routes to your router via Telnet
 
-For upgrade the routes by the generated file:
+### Generate Only (No Apply)
 
-```nix
-./update_routes_by_telnet.sh _routes/<your.awesome.domain>_routes.txt
+To only generate the routes file without applying to the router:
+
+```bash
+./update_routes.sh <your.awesome.domain> <vpn_interface> --save-only
 ```
