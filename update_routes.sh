@@ -5,23 +5,97 @@ if [ -f .env ]; then
 	export $(grep -v '^#' .env | xargs)
 fi
 
+# Parse arguments
+REMOVE_MODE=false
+SAVE_ONLY=false
+
+# Check for flags
+for arg in "$@"; do
+	case $arg in
+	--remove)
+		REMOVE_MODE=true
+		shift
+		;;
+	--save-only)
+		SAVE_ONLY=true
+		shift
+		;;
+	esac
+done
+
 # Check if domain name and VPN interface are provided
-if [ -z "$1" ] || [ -z "$2" ]; then
-	echo "Usage: $0 <domain_name> <vpn_interface> [--save-only]"
+if [ -z "$1" ]; then
+	echo "Usage: $0 <domain_name> [vpn_interface] [--save-only] [--remove]"
 	echo ""
 	echo "Options:"
 	echo "  --save-only    Only generate routes file without applying to router"
+	echo "  --remove       Remove routes from an existing routes file"
+	echo ""
+	echo "Examples:"
+	echo "  Add routes:     $0 example.com Wireguard0"
+	echo "  Remove routes:  $0 example.com --remove"
 	exit 1
 fi
 
 DOMAIN=$1
 VPN_INTERFACE=$2
-SAVE_ONLY=false
 OUTPUT_FILE="_routes/${DOMAIN}_routes.txt"
 
-# Check for --save-only flag
-if [ "$3" == "--save-only" ]; then
-	SAVE_ONLY=true
+# Handle remove mode
+if [ "$REMOVE_MODE" == true ]; then
+	# Check if routes file exists
+	if [ ! -f "$OUTPUT_FILE" ]; then
+		echo "Error: Routes file not found: $OUTPUT_FILE"
+		echo "Generate routes first before removing them."
+		exit 1
+	fi
+
+	echo "==> Found routes file: $OUTPUT_FILE"
+	echo "==> Preparing to remove $(wc -l <"$OUTPUT_FILE") route(s)"
+
+	# Check if required variables are set for router connection
+	if [ -z "$ROUTER_IP" ] || [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+		echo "Error: Missing required environment variables for router connection."
+		echo "Ensure .env contains ROUTER_IP, USERNAME, and PASSWORD."
+		exit 1
+	fi
+
+	echo "==> Connecting to router at $ROUTER_IP and removing routes..."
+
+	# Function to generate Telnet commands for removing routes
+	generate_telnet_remove_commands() {
+		sleep 5
+		echo "$USERNAME"
+		sleep 3
+		echo "$PASSWORD"
+		sleep 1
+
+		while IFS=' ' read -r ROUTE; do
+			if [ -n "$ROUTE" ]; then
+				# Prefix the route command with "no" to remove it
+				echo "no $ROUTE"
+				sleep 1
+			fi
+		done <"$OUTPUT_FILE"
+
+		echo "system configuration save"
+		sleep 1
+		echo "exit"
+	}
+
+	# Execute Telnet session
+	generate_telnet_remove_commands | telnet "$ROUTER_IP"
+
+	echo "==> Done! Routes have been removed and configuration saved."
+	exit 0
+fi
+
+# Add mode (default behavior)
+# Check if VPN interface is provided for add mode
+if [ -z "$VPN_INTERFACE" ]; then
+	echo "Error: VPN interface is required when adding routes"
+	echo "Usage: $0 <domain_name> <vpn_interface> [--save-only]"
+	exit 1
 fi
 
 echo "==> Resolving domain: $DOMAIN"

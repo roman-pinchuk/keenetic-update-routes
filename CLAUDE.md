@@ -10,6 +10,7 @@ This is a Keenetic router route management tool that generates and applies custo
 
 The project consists of a unified bash script (`update_routes.sh`) that handles the complete workflow:
 
+### Add Mode (default)
 1. **DNS Resolution** - Resolves domain to IP addresses using `dig`
 2. **Route Generation** - Creates Keenetic router commands in format: `ip route <IP> <VPN_INTERFACE> auto !<DOMAIN>`
 3. **Route Application** - Applies commands to router via Telnet
@@ -18,7 +19,14 @@ The project consists of a unified bash script (`update_routes.sh`) that handles 
    - Executes each route command sequentially with 1-second delays
    - Saves configuration with `system configuration save` before exiting
 
-The script supports a `--save-only` flag to generate routes without applying them.
+### Remove Mode
+When using `--remove` flag:
+1. **File Validation** - Checks if routes file exists for the specified domain
+2. **Route Removal** - Reads existing routes and prefixes with `no` command
+3. **Router Application** - Connects via Telnet and executes `no ip route ...` commands
+4. **Configuration Save** - Persists changes to router configuration
+
+The script supports a `--save-only` flag to generate routes without applying them (only in add mode).
 
 ## Key Dependencies
 
@@ -39,7 +47,7 @@ Note: `.env` is git-ignored and contains sensitive credentials.
 
 ## Common Commands
 
-Generate and apply routes in one command:
+Add routes (generate and apply):
 ```bash
 ./update_routes.sh <domain_name> <vpn_interface>
 ```
@@ -49,9 +57,18 @@ Generate routes without applying (save only):
 ./update_routes.sh <domain_name> <vpn_interface> --save-only
 ```
 
-Example:
+Remove routes:
 ```bash
+./update_routes.sh <domain_name> --remove
+```
+
+Examples:
+```bash
+# Add routes for example.com via Wireguard0
 ./update_routes.sh example.com Wireguard0
+
+# Remove routes for example.com
+./update_routes.sh example.com --remove
 ```
 
 ## Output Directory

@@ -17,6 +17,8 @@ PASSWORD=<password_of_the_router>
 
 ## Usage
 
+### Add Routes
+
 Generate routes and apply them to your router in one command:
 
 ```bash
@@ -36,3 +38,16 @@ To only generate the routes file without applying to the router:
 ```bash
 ./update_routes.sh <your.awesome.domain> <vpn_interface> --save-only
 ```
+
+### Remove Routes
+
+To remove previously added routes:
+
+```bash
+./update_routes.sh <your.awesome.domain> --remove
+```
+
+This will:
+1. Read the existing routes file `_routes/<your.awesome.domain>_routes.txt`
+2. Connect to the router and remove each route using `no ip route ...` commands
+3. Save the configuration
