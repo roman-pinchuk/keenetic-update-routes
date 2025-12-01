@@ -8,23 +8,25 @@ fi
 # Parse arguments
 REMOVE_MODE=false
 SAVE_ONLY=false
+POSITIONAL_ARGS=()
 
-# Check for flags
+# Separate flags from positional arguments
 for arg in "$@"; do
 	case $arg in
 	--remove)
 		REMOVE_MODE=true
-		shift
 		;;
 	--save-only)
 		SAVE_ONLY=true
-		shift
+		;;
+	*)
+		POSITIONAL_ARGS+=("$arg")
 		;;
 	esac
 done
 
-# Check if domain name and VPN interface are provided
-if [ -z "$1" ]; then
+# Check if domain name is provided
+if [ ${#POSITIONAL_ARGS[@]} -eq 0 ]; then
 	echo "Usage: $0 <domain_name> [vpn_interface] [--save-only] [--remove]"
 	echo ""
 	echo "Options:"
@@ -37,8 +39,8 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-DOMAIN=$1
-VPN_INTERFACE=$2
+DOMAIN="${POSITIONAL_ARGS[0]}"
+VPN_INTERFACE="${POSITIONAL_ARGS[1]}"
 OUTPUT_FILE="_routes/${DOMAIN}_routes.txt"
 
 # Handle remove mode
@@ -72,8 +74,11 @@ if [ "$REMOVE_MODE" == true ]; then
 
 		while IFS=' ' read -r ROUTE; do
 			if [ -n "$ROUTE" ]; then
+				# Strip 'auto' and comment for removal (no command doesn't support them)
+				# Remove everything after 'auto' (including auto itself and comments)
+				CLEAN_ROUTE=$(echo "$ROUTE" | sed 's/ auto.*//')
 				# Prefix the route command with "no" to remove it
-				echo "no $ROUTE"
+				echo "no $CLEAN_ROUTE"
 				sleep 1
 			fi
 		done <"$OUTPUT_FILE"
