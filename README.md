@@ -95,6 +95,39 @@ ip route 93.158.134.0 Wireguard0 auto !example.com
 
 Routes are stored in `_routes/<domain>_routes.txt` for future reference and removal.
 
+## KeeneticOS Version Compatibility
+
+### KeeneticOS v4 (Current Support)
+
+This script is designed for **KeeneticOS v4**, which does not support native domain-based routing. The script handles domain-to-IP resolution externally using `dig` and creates IP-based routes.
+
+**How it works on v4:**
+- DNS resolution happens on your local machine
+- Only IPv4 addresses are sent to the router
+- Routes are created as: `ip route <IP> <interface> auto`
+- Manual route management via this script is required
+
+### KeeneticOS v5.0+ (Future Support)
+
+KeeneticOS v5.0 introduced native **DNS-Based Routing** using FQDN object groups:
+
+**New features in v5:**
+- Native domain-based routing via `dns-proxy route object-group` command
+- Automatic DNS resolution by the router itself
+- Dynamic IP updates when domains change
+- No manual IP tracking needed
+
+**Example v5 commands:**
+```bash
+object-group fqdn RUSSIAN_SITES include rzd.ru
+dns-proxy route object-group RUSSIAN_SITES Wireguard0 auto
+```
+
+If you upgrade to KeeneticOS v5, this script will still work using the legacy IP-based routing method. Native v5 domain routing support may be added in future versions of this script.
+
+**Check your router version:**
+Connect via Telnet and check the banner - it shows `KeeneticOS version X.XX.X.X.X`
+
 ## Troubleshooting
 
 **"Error: No IP addresses found for domain"**

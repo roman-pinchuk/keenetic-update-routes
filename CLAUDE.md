@@ -8,6 +8,8 @@ This is a Keenetic router route management tool that generates and applies custo
 
 **Use case:** Route traffic for specific domains (e.g., region-locked services) through a VPN interface while keeping other traffic on the default route.
 
+**Target platform:** KeeneticOS v4 (IP-based routing). The script resolves domains to IPs externally since v4 doesn't support native domain-based routing.
+
 ## Architecture
 
 The project consists of a single unified bash script (`update_routes.sh`) with two operational modes:
@@ -139,3 +141,49 @@ When testing changes:
 2. Check generated files in `_routes/` directory
 3. Apply routes to router only after verification
 4. Test removal functionality on non-critical routes first
+
+## KeeneticOS Version Compatibility
+
+### KeeneticOS v4 (Current Implementation)
+
+This script is designed for **KeeneticOS v4**, which requires IP-based routing:
+
+**Limitations in v4:**
+- No native domain-based routing support
+- No `dns-proxy route object-group` command available
+- Routes must specify IP addresses, not hostnames
+- DNS resolution must happen externally (via `dig`)
+
+**Script approach:**
+- Uses `dig +short` to resolve domains
+- Filters results to include only IPv4 addresses using regex: `^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$`
+- Creates IP-based routes: `ip route <IP> <interface> auto !<comment>`
+- Stores routes in files for future removal
+
+### KeeneticOS v5.0+ (Not Yet Supported)
+
+KeeneticOS v5.0 introduced native DNS-Based Routing with FQDN object groups:
+
+**New capabilities in v5:**
+```bash
+# Create FQDN object group
+object-group fqdn <group_name> include <domain>
+
+# Configure routing for the group
+dns-proxy route object-group <group> <interface> [auto] [reject]
+```
+
+**Benefits over v4:**
+- Automatic DNS resolution by router
+- Dynamic IP updates when domains change
+- Multiple domains grouped together
+- No external DNS resolution needed
+
+**Future implementation notes:**
+- If adding v5 support, detect router version first
+- Consider dual-mode operation (v4 and v5 methods)
+- v5 commands should use object-groups for domain lists
+- Legacy IP-based routing still works on v5 routers
+
+**Version detection:**
+Check Telnet banner for: `KeeneticOS version X.XX.X.X.X`
