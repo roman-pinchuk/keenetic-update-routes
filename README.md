@@ -75,13 +75,13 @@ Remove previously added routes:
 
 ```bash
 # Route Russian railway site through VPN
-./update_routes.sh rzd.ru Wireguard0
+./update_routes.sh chatgpt.com Wireguard0
 
 # Generate routes for a mail server without applying
-./update_routes.sh mail.rshu.ru Wireguard0 --save-only
+./update_routes.sh chatgpt.com Wireguard0 --save-only
 
 # Remove routes for a domain
-./update_routes.sh rzd.ru --remove
+./update_routes.sh chatgpt.com --remove
 ```
 
 ## How It Works
